@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace Order.Infrastructure.Persistence.PostgreSQL.Migrations
+namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
 {
     /// <inheritdoc />
     public partial class InitialCreate : Migration

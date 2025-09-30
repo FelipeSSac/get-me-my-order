@@ -7,7 +7,7 @@ using Order.Infrastructure.Data;
 
 #nullable disable
 
-namespace Order.Infrastructure.Persistence.PostgreSQL.Migrations
+namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
     partial class OrderDbContextModelSnapshot : ModelSnapshot
