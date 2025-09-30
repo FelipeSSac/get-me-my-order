@@ -1,9 +1,21 @@
+using Microsoft.EntityFrameworkCore;
+using Order.Infrastructure.Data;
+using DotNetEnv;
+using System.Text.RegularExpressions;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddOpenApi();
 
+var connectionString = ExpandEnvironmentVariables(builder.Configuration.GetConnectionString("DefaultConnection")!);
+
+builder.Services.AddDbContext<OrderDbContext>(options =>
+    options.UseNpgsql(connectionString));
+
 builder.Services.AddHealthChecks()
-    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Host=localhost;Database=gmmo_db;Username=postgres;Password=postgres", name: "postgresql")
+    .AddNpgSql(connectionString, name: "postgresql")
     .AddCheck("application", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Application is running"))
     .AddCheck("memory", () =>
     {
@@ -27,11 +39,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
 app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
     ResponseWriter = HealthChecks.UI.Client.UIResponseWriter.WriteHealthCheckUIResponse
@@ -48,3 +55,16 @@ app.MapHealthChecks("/health/live", new Microsoft.AspNetCore.Diagnostics.HealthC
 });
 
 app.Run();
+
+// Helper function to expand environment variables in configuration strings
+static string ExpandEnvironmentVariables(string input)
+{
+    if (string.IsNullOrEmpty(input))
+        return input;
+
+    return Regex.Replace(input, @"\$\{([^}]+)\}", match =>
+    {
+        var envVarName = match.Groups[1].Value;
+        return Environment.GetEnvironmentVariable(envVarName) ?? match.Value;
+    });
+}
