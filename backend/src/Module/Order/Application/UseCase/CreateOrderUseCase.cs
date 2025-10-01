@@ -62,7 +62,7 @@ public class CreateOrderUseCase : ICreateOrderUseCase
         }
     }
 
-    private async Task<List<OrderProductEntity>> _createProducts(Guid orderId, List<CreateOrderRequestProduct> productList)
+    private async Task<List<OrderProductEntity>> _createProducts(Guid orderId, List<CreateOrderProductRequest> productList)
     {
         List<OrderProductEntity> orderProducts = new List<OrderProductEntity>();
         

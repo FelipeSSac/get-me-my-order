@@ -25,5 +25,6 @@ public class ProductEntity
     }
 
     public Guid? GetId() => Id;
+    public string GetName() => Name;
     public Money GetValue() => Value;
 }

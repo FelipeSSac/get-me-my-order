@@ -12,6 +12,7 @@ public static class OrderMapper
             order.GetClientId(),
             order.GetOrderProducts().Select(p => new OrderProductResponse(
                 p.GetProductId(),
+                p.GetProductName(),
                 p.GetQuantity(),
                 p.GetUnitPrice().GetAmount(),
                 p.GetUnitPrice().GetCurrency()

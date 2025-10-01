@@ -10,10 +10,3 @@ public record OrderResponse(
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
-
-public record OrderProductResponse(
-    Guid ProductId,
-    int Quantity,
-    decimal UnitPriceAmount,
-    string UnitPriceCurrency
-);

@@ -36,6 +36,7 @@ public class OrderProductEntity
     }
     
     public Guid GetProductId() => Product.GetId() ?? Guid.Empty;
+    public string GetProductName() => Product.GetName();
     public int GetQuantity() => Quantity;
     public Money GetUnitPrice() => UnitPrice;
 }
