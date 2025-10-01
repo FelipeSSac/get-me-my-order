@@ -6,6 +6,9 @@ using Order.Application.UseCase;
 using Order.Application.UseCase.Interface;
 using Order.Domain.Repository;
 using Order.Infrastructure.Persistence.EntityFramework.Repository;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using Order.Infrastructure.Api.Controller.Request.Validator;
 
 Env.Load("../../../../.env");
 
@@ -15,6 +18,8 @@ builder.Configuration.AddEnvironmentVariables();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<CreateOrderRequestValidator>();
 
 var connectionString = ExpandEnvironmentVariables(builder.Configuration.GetConnectionString("DefaultConnection")!);
 

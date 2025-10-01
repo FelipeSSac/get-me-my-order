@@ -43,6 +43,7 @@ public sealed class Money : IEquatable<Money>
         return new Money(Amount - other.Amount, Currency);
     }
 
+    public decimal GetAmount() => Amount;
     public string GetCurrency() => Currency;
 
     public Money Multiply(decimal multiplier) => new Money(Amount * multiplier, Currency);

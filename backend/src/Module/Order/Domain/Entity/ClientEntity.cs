@@ -23,5 +23,6 @@ public class ClientEntity
     {
         return new ClientEntity(id, name, email);
     }
-
+    
+    public Guid? GetId() => Id;
 }

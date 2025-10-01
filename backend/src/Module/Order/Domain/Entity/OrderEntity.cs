@@ -53,5 +53,11 @@ public class OrderEntity
         };
     }
 
-    public Guid? GetId() =>  Id;
+    public Guid? GetId() => Id;
+    public Guid GetClientId() => ClientEntity.GetId() ?? Guid.Empty;
+    public List<OrderProductEntity> GetOrderProducts() => OrderProducts;
+    public Money GetTotalValue() => TotalValue;
+    public OrderStatus GetStatus() => Status;
+    public DateTime GetCreatedAt() => CreatedAt;
+    public DateTime GetUpdatedAt() => UpdatedAt;
 }

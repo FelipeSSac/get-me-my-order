@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using Order.Application.UseCase.Interface;
 using Order.Domain.Entity;
+using Order.Infrastructure.Api.Controller.Mapper;
 using Order.Infrastructure.Api.Controller.Request;
+using Order.Infrastructure.Api.Controller.Response;
 
 namespace Order.Infrastructure.Api.Controller;
 
@@ -27,6 +29,6 @@ public class OrderController : ControllerBase
     {
         OrderEntity order = await _createOrderUseCase.Execute(request);
 
-        return Created(order.GetId().ToString(), order);
+        return Created($"/orders/{order.GetId()}", order.ToResponse());
     }
 }
