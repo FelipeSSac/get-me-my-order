@@ -25,7 +25,7 @@ public sealed class Money : IEquatable<Money>
         return new Money(amount, currency.ToUpperInvariant());
     }
 
-    public static Money Zero(string currency = "USD") => new Money(0, currency);
+    public static Money Zero(string currency = "BRL") => new Money(0, currency);
 
     public Money Add(Money other)
     {
@@ -42,6 +42,8 @@ public sealed class Money : IEquatable<Money>
 
         return new Money(Amount - other.Amount, Currency);
     }
+
+    public string GetCurrency() => Currency;
 
     public Money Multiply(decimal multiplier) => new Money(Amount * multiplier, Currency);
 

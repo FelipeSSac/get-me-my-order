@@ -2,17 +2,32 @@ using Microsoft.EntityFrameworkCore;
 using Order.Infrastructure.Data;
 using DotNetEnv;
 using System.Text.RegularExpressions;
+using Order.Application.UseCase;
+using Order.Application.UseCase.Interface;
+using Order.Domain.Repository;
+using Order.Infrastructure.Persistence.EntityFramework.Repository;
+
+Env.Load("../../../../.env");
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddEnvironmentVariables();
 
+builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var connectionString = ExpandEnvironmentVariables(builder.Configuration.GetConnectionString("DefaultConnection")!);
 
 builder.Services.AddDbContext<OrderDbContext>(options =>
     options.UseNpgsql(connectionString));
+
+// Register repositories
+builder.Services.AddScoped<IOrderRepository, OrderRepositoryEntityFramework>();
+builder.Services.AddScoped<IClientRepository, ClientRepositoryEntityFramework>();
+builder.Services.AddScoped<IProductRepository, ProductRepositoryEntityFramework>();
+
+// Register use cases
+builder.Services.AddScoped<ICreateOrderUseCase, CreateOrderUseCase>();
 
 builder.Services.AddHealthChecks()
     .AddNpgSql(connectionString, name: "postgresql")
@@ -38,6 +53,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.MapControllers();
 
 app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {

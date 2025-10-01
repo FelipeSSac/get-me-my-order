@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Order.Infrastructure.Data;
@@ -11,9 +12,11 @@ using Order.Infrastructure.Data;
 namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    partial class OrderDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251001002014_AddOrderProductsTable")]
+    partial class AddOrderProductsTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -94,6 +97,10 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
                     b.Property<int>("Quantity")
                         .HasColumnType("integer")
                         .HasColumnName("quantity");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("unit_price");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -236,35 +243,9 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.OwnsOne("Order.Domain.ValueObject.Money", "UnitPrice", b1 =>
-                        {
-                            b1.Property<Guid>("OrderProductEntityId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<decimal>("Amount")
-                                .HasColumnType("decimal(18,2)")
-                                .HasColumnName("unit_price_amount");
-
-                            b1.Property<string>("Currency")
-                                .IsRequired()
-                                .HasMaxLength(3)
-                                .HasColumnType("character varying(3)")
-                                .HasColumnName("unit_price_currency");
-
-                            b1.HasKey("OrderProductEntityId");
-
-                            b1.ToTable("order_products");
-
-                            b1.WithOwner()
-                                .HasForeignKey("OrderProductEntityId");
-                        });
-
                     b.Navigation("Order");
 
                     b.Navigation("Product");
-
-                    b.Navigation("UnitPrice")
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Order.Domain.Entity.ProductEntity", b =>

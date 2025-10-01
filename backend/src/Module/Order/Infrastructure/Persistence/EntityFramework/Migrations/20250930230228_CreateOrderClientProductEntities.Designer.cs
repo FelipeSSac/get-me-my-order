@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Order.Infrastructure.Data;
@@ -11,9 +12,11 @@ using Order.Infrastructure.Data;
 namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
 {
     [DbContext(typeof(OrderDbContext))]
-    partial class OrderDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250930230228_CreateOrderClientProductEntities")]
+    partial class CreateOrderClientProductEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Order.Domain.Entity.ClientEntity", b =>
+            modelBuilder.Entity("Order.Domain.Entity.Client", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -42,7 +45,7 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
                     b.ToTable("clients", (string)null);
                 });
 
-            modelBuilder.Entity("Order.Domain.Entity.OrderEntity", b =>
+            modelBuilder.Entity("Order.Domain.Entity.Order", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -57,6 +60,10 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("created_at");
 
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("product_id");
+
                     b.Property<int>("Status")
                         .HasColumnType("integer")
                         .HasColumnName("status");
@@ -69,47 +76,12 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
 
                     b.HasIndex("ClientId");
 
+                    b.HasIndex("ProductId");
+
                     b.ToTable("orders", (string)null);
                 });
 
-            modelBuilder.Entity("Order.Domain.Entity.OrderProductEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid")
-                        .HasColumnName("id");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_at");
-
-                    b.Property<Guid>("OrderId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("order_id");
-
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("product_id");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("integer")
-                        .HasColumnName("quantity");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("updated_at");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("OrderId", "ProductId")
-                        .IsUnique();
-
-                    b.ToTable("order_products", (string)null);
-                });
-
-            modelBuilder.Entity("Order.Domain.Entity.ProductEntity", b =>
+            modelBuilder.Entity("Order.Domain.Entity.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -129,11 +101,11 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
                     b.ToTable("products", (string)null);
                 });
 
-            modelBuilder.Entity("Order.Domain.Entity.ClientEntity", b =>
+            modelBuilder.Entity("Order.Domain.Entity.Client", b =>
                 {
                     b.OwnsOne("Order.Domain.ValueObject.Email", "Email", b1 =>
                         {
-                            b1.Property<Guid>("ClientEntityId")
+                            b1.Property<Guid>("ClientId")
                                 .HasColumnType("uuid");
 
                             b1.Property<string>("Value")
@@ -142,7 +114,7 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
                                 .HasColumnType("character varying(254)")
                                 .HasColumnName("email");
 
-                            b1.HasKey("ClientEntityId");
+                            b1.HasKey("ClientId");
 
                             b1.HasIndex("Value")
                                 .IsUnique();
@@ -150,12 +122,12 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
                             b1.ToTable("clients");
 
                             b1.WithOwner()
-                                .HasForeignKey("ClientEntityId");
+                                .HasForeignKey("ClientId");
                         });
 
                     b.OwnsOne("Order.Domain.ValueObject.PersonName", "Name", b1 =>
                         {
-                            b1.Property<Guid>("ClientEntityId")
+                            b1.Property<Guid>("ClientId")
                                 .HasColumnType("uuid");
 
                             b1.Property<string>("FirstName")
@@ -170,12 +142,12 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
                                 .HasColumnType("character varying(50)")
                                 .HasColumnName("last_name");
 
-                            b1.HasKey("ClientEntityId");
+                            b1.HasKey("ClientId");
 
                             b1.ToTable("clients");
 
                             b1.WithOwner()
-                                .HasForeignKey("ClientEntityId");
+                                .HasForeignKey("ClientId");
                         });
 
                     b.Navigation("Email")
@@ -185,93 +157,23 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Order.Domain.Entity.OrderEntity", b =>
+            modelBuilder.Entity("Order.Domain.Entity.Order", b =>
                 {
-                    b.HasOne("Order.Domain.Entity.ClientEntity", "ClientEntity")
+                    b.HasOne("Order.Domain.Entity.Client", "Client")
                         .WithMany()
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.OwnsOne("Order.Domain.ValueObject.Money", "TotalValue", b1 =>
-                        {
-                            b1.Property<Guid>("OrderEntityId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<decimal>("Amount")
-                                .HasColumnType("decimal(18,2)")
-                                .HasColumnName("total_value_amount");
-
-                            b1.Property<string>("Currency")
-                                .IsRequired()
-                                .HasMaxLength(3)
-                                .HasColumnType("character varying(3)")
-                                .HasColumnName("total_value_currency");
-
-                            b1.HasKey("OrderEntityId");
-
-                            b1.ToTable("orders");
-
-                            b1.WithOwner()
-                                .HasForeignKey("OrderEntityId");
-                        });
-
-                    b.Navigation("ClientEntity");
-
-                    b.Navigation("TotalValue")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Order.Domain.Entity.OrderProductEntity", b =>
-                {
-                    b.HasOne("Order.Domain.Entity.OrderEntity", "Order")
-                        .WithMany("OrderProducts")
-                        .HasForeignKey("OrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Order.Domain.Entity.ProductEntity", "Product")
+                    b.HasOne("Order.Domain.Entity.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.OwnsOne("Order.Domain.ValueObject.Money", "UnitPrice", b1 =>
-                        {
-                            b1.Property<Guid>("OrderProductEntityId")
-                                .HasColumnType("uuid");
-
-                            b1.Property<decimal>("Amount")
-                                .HasColumnType("decimal(18,2)")
-                                .HasColumnName("unit_price_amount");
-
-                            b1.Property<string>("Currency")
-                                .IsRequired()
-                                .HasMaxLength(3)
-                                .HasColumnType("character varying(3)")
-                                .HasColumnName("unit_price_currency");
-
-                            b1.HasKey("OrderProductEntityId");
-
-                            b1.ToTable("order_products");
-
-                            b1.WithOwner()
-                                .HasForeignKey("OrderProductEntityId");
-                        });
-
-                    b.Navigation("Order");
-
-                    b.Navigation("Product");
-
-                    b.Navigation("UnitPrice")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Order.Domain.Entity.ProductEntity", b =>
-                {
                     b.OwnsOne("Order.Domain.ValueObject.Money", "Value", b1 =>
                         {
-                            b1.Property<Guid>("ProductEntityId")
+                            b1.Property<Guid>("OrderId")
                                 .HasColumnType("uuid");
 
                             b1.Property<decimal>("Amount")
@@ -284,17 +186,50 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
                                 .HasColumnType("character varying(3)")
                                 .HasColumnName("value_currency");
 
-                            b1.HasKey("ProductEntityId");
+                            b1.HasKey("OrderId");
+
+                            b1.ToTable("orders");
+
+                            b1.WithOwner()
+                                .HasForeignKey("OrderId");
+                        });
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Value")
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Order.Domain.Entity.Product", b =>
+                {
+                    b.OwnsOne("Order.Domain.ValueObject.Money", "Value", b1 =>
+                        {
+                            b1.Property<Guid>("ProductId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<decimal>("Amount")
+                                .HasColumnType("decimal(18,2)")
+                                .HasColumnName("value_amount");
+
+                            b1.Property<string>("Currency")
+                                .IsRequired()
+                                .HasMaxLength(3)
+                                .HasColumnType("character varying(3)")
+                                .HasColumnName("value_currency");
+
+                            b1.HasKey("ProductId");
 
                             b1.ToTable("products");
 
                             b1.WithOwner()
-                                .HasForeignKey("ProductEntityId");
+                                .HasForeignKey("ProductId");
                         });
 
                     b.OwnsOne("Order.Domain.ValueObject.ProductName", "Name", b1 =>
                         {
-                            b1.Property<Guid>("ProductEntityId")
+                            b1.Property<Guid>("ProductId")
                                 .HasColumnType("uuid");
 
                             b1.Property<string>("Value")
@@ -303,12 +238,12 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
                                 .HasColumnType("character varying(100)")
                                 .HasColumnName("name");
 
-                            b1.HasKey("ProductEntityId");
+                            b1.HasKey("ProductId");
 
                             b1.ToTable("products");
 
                             b1.WithOwner()
-                                .HasForeignKey("ProductEntityId");
+                                .HasForeignKey("ProductId");
                         });
 
                     b.Navigation("Name")
@@ -316,11 +251,6 @@ namespace Order.Infrastructure.Persistence.EntityFramework.Migrations
 
                     b.Navigation("Value")
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Order.Domain.Entity.OrderEntity", b =>
-                {
-                    b.Navigation("OrderProducts");
                 });
 #pragma warning restore 612, 618
         }

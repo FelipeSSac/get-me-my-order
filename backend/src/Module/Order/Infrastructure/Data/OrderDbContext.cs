@@ -5,9 +5,10 @@ namespace Order.Infrastructure.Data;
 
 public class OrderDbContext : DbContext
 {
-    public DbSet<Domain.Entity.Order> Orders => Set<Domain.Entity.Order>();
-    public DbSet<Domain.Entity.Client> Clients => Set<Domain.Entity.Client>();
-    public DbSet<Domain.Entity.Product> Products => Set<Domain.Entity.Product>();
+    public DbSet<Domain.Entity.OrderEntity> Orders => Set<Domain.Entity.OrderEntity>();
+    public DbSet<Domain.Entity.ClientEntity> Clients => Set<Domain.Entity.ClientEntity>();
+    public DbSet<Domain.Entity.ProductEntity> Products => Set<Domain.Entity.ProductEntity>();
+    public DbSet<Domain.Entity.OrderProductEntity> OrderProducts => Set<Domain.Entity.OrderProductEntity>();
 
     public OrderDbContext(DbContextOptions<OrderDbContext> options) : base(options)
     {
@@ -20,5 +21,6 @@ public class OrderDbContext : DbContext
         modelBuilder.ApplyConfiguration(new OrderConfiguration());
         modelBuilder.ApplyConfiguration(new ClientConfiguration());
         modelBuilder.ApplyConfiguration(new ProductConfiguration());
+        modelBuilder.ApplyConfiguration(new OrderProductConfiguration());
     }
 }

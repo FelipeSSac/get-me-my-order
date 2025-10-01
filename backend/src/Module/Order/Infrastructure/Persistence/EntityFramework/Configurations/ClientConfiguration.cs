@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Order.Infrastructure.Persistence.EntityFramework.Configurations;
 
-public class ClientConfiguration : IEntityTypeConfiguration<Domain.Entity.Client>
+public class ClientConfiguration : IEntityTypeConfiguration<Domain.Entity.ClientEntity>
 {
-    public void Configure(EntityTypeBuilder<Domain.Entity.Client> builder)
+    public void Configure(EntityTypeBuilder<Domain.Entity.ClientEntity> builder)
     {
         builder.ToTable("clients");
 

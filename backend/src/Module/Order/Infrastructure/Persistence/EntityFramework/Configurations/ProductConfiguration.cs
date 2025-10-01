@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Order.Infrastructure.Persistence.EntityFramework.Configurations;
 
-public class ProductConfiguration : IEntityTypeConfiguration<Domain.Entity.Product>
+public class ProductConfiguration : IEntityTypeConfiguration<Domain.Entity.ProductEntity>
 {
-    public void Configure(EntityTypeBuilder<Domain.Entity.Product> builder)
+    public void Configure(EntityTypeBuilder<Domain.Entity.ProductEntity> builder)
     {
         builder.ToTable("products");
 
