@@ -3,8 +3,10 @@ using Order.Domain.Repository;
 using Order.Domain.Entity;
 using Order.Domain.Enum;
 using Order.Domain.ValueObject;
+using Order.Domain.Event;
 using Order.Infrastructure.Api.Controller.Request;
 using Order.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace Order.Application.UseCase;
 
@@ -14,17 +16,20 @@ public class CreateOrderUseCase : ICreateOrderUseCase
     private readonly IProductRepository _productRepository;
     private readonly IClientRepository _clientRepository;
     private readonly OrderDbContext _context;
+    private readonly IDomainEventPublisher _eventPublisher;
 
     public CreateOrderUseCase(
         IOrderRepository orderRepository,
         IProductRepository productRepository,
         IClientRepository clientRepository,
-        OrderDbContext context)
+        OrderDbContext context,
+        IDomainEventPublisher eventPublisher)
     {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
         _clientRepository = clientRepository;
         _context = context;
+        _eventPublisher = eventPublisher;
     }
 
     public async Task<OrderEntity> Execute(CreateOrderRequest request)
@@ -51,12 +56,23 @@ public class CreateOrderUseCase : ICreateOrderUseCase
 
             var result = await _orderRepository.AddAsync(order);
 
-            await transaction.CommitAsync();
+            var orderCreatedEvent = new OrderCreatedEvent(
+                result.GetId() ?? Guid.Empty,
+                result.GetClientId(),
+                result.GetTotalValue().GetAmount(),
+                result.GetTotalValue().GetCurrency(),
+                result.GetCreatedAt()
+            );
 
+            await _eventPublisher.PublishAsync(orderCreatedEvent);
+
+            await transaction.CommitAsync();
+            
             return result;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Error creating order: {ex.Message}");
             await transaction.RollbackAsync();
             throw;
         }
@@ -65,14 +81,14 @@ public class CreateOrderUseCase : ICreateOrderUseCase
     private async Task<List<OrderProductEntity>> _createProducts(Guid orderId, List<CreateOrderProductRequest> productList)
     {
         List<OrderProductEntity> orderProducts = new List<OrderProductEntity>();
-        
+
         foreach (var orderProduct in productList)
         {
             ProductEntity? product = await _productRepository.GetByIdAsync(orderProduct.ProductId);
 
             if (product == null)
                 throw new ArgumentException("Product does not exists!");
-            
+
             orderProducts.Add(OrderProductEntity.Create(null, orderId, product, orderProduct.Quantity, product.GetValue()));
         }
 

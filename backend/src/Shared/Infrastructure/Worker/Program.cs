@@ -1,16 +1,16 @@
-using Worker;
+using Worker.Services;
 using DotNetEnv;
-using System.Text.RegularExpressions;
 
-// Load environment variables from .env file
-Env.Load();
+// Load environment variables from .env file relative to project root
+Env.Load("../../../../.env");
 
 var builder = Host.CreateApplicationBuilder(args);
 
 // Configure to use environment variables in configuration
 builder.Configuration.AddEnvironmentVariables();
 
-builder.Services.AddHostedService<Worker.Worker>();
+// Register the OrderCreatedEventConsumer as a hosted service
+builder.Services.AddHostedService<OrderCreatedEventConsumer>();
 
 var host = builder.Build();
 host.Run();

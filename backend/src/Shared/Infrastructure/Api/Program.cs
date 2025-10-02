@@ -9,6 +9,10 @@ using Order.Infrastructure.Persistence.EntityFramework.Repository;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Order.Infrastructure.Api.Controller.Request.Validator;
+using Order.Domain.Event;
+using Order.Infrastructure.Event;
+using Order.Infrastructure.Messaging;
+using Order.Application.EventHandler;
 
 Env.Load("../../../../.env");
 
@@ -33,6 +37,19 @@ builder.Services.AddScoped<IProductRepository, ProductRepositoryEntityFramework>
 
 // Register use cases
 builder.Services.AddScoped<ICreateOrderUseCase, CreateOrderUseCase>();
+
+// Register Azure Service Bus
+var serviceBusConnectionString = builder.Configuration["SERVICEBUS_CONNECTION_STRING"]
+    ?? throw new InvalidOperationException("Service Bus connection string is not configured");
+builder.Services.AddSingleton<IServiceBusClient>(sp => new AzureServiceBusClient(serviceBusConnectionString));
+
+// Register event infrastructure
+builder.Services.AddScoped<IDomainEventPublisher, DomainEventPublisher>();
+builder.Services.AddScoped<IEventHandler<OrderCreatedEvent>, OrderCreatedEventHandler>();
+
+// Register Service Bus management service
+builder.Services.AddSingleton<IServiceBusManagementService>(sp =>
+    new ServiceBusManagementService(serviceBusConnectionString));
 
 builder.Services.AddHealthChecks()
     .AddNpgSql(connectionString, name: "postgresql")
