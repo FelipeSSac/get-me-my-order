@@ -17,26 +17,10 @@ public class OrderRepositoryEntityFramework : IOrderRepository
     public async Task<OrderEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Orders
+            .AsNoTracking() 
             .Include("ClientEntity")
             .Include("OrderProducts.Product")
             .FirstOrDefaultAsync(o => EF.Property<Guid>(o, "Id") == id, cancellationToken);
-    }
-
-    public async Task<IEnumerable<OrderEntity>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        return await _context.Orders
-            .Include("ClientEntity")
-            .Include("OrderProducts.Product")
-            .ToListAsync(cancellationToken);
-    }
-
-    public async Task<IEnumerable<OrderEntity>> GetByClientIdAsync(Guid clientId, CancellationToken cancellationToken = default)
-    {
-        return await _context.Orders
-            .Include("ClientEntity")
-            .Include("OrderProducts.Product")
-            .Where(o => EF.Property<Guid>(o, "ClientId") == clientId)
-            .ToListAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<OrderEntity>> GetByStatusAsync(Domain.Enum.OrderStatus status, CancellationToken cancellationToken = default)
@@ -80,17 +64,11 @@ public class OrderRepositoryEntityFramework : IOrderRepository
 
     public async Task UpdateAsync(OrderEntity orderEntity, CancellationToken cancellationToken = default)
     {
-        _context.Orders.Update(orderEntity);
-        await _context.SaveChangesAsync(cancellationToken);
-    }
+        _context.Orders.Attach(orderEntity);
+        _context.Entry(orderEntity).State = EntityState.Modified;
 
-    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var order = await GetByIdAsync(id, cancellationToken);
-        if (order != null)
-        {
-            _context.Orders.Remove(order);
-            await _context.SaveChangesAsync(cancellationToken);
-        }
+        await _context.SaveChangesAsync(cancellationToken);
+        
+        _context.Entry(orderEntity).State = EntityState.Detached;
     }
 }

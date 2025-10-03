@@ -42,19 +42,23 @@ public class OrderEntity
         return new OrderEntity(id, clientEntity, orderProducts, totalValue, status);
     }
 
+    public OrderEntity SetAsProcessing() => ChangeStatus(OrderStatus.Processing);
+    public OrderEntity SetAsDone() => ChangeStatus(OrderStatus.Done);
+
     public OrderEntity ChangeStatus(OrderStatus newStatus)
     {
-        if ((int)newStatus != (int)Status + 1)
+        bool canStatusTransition = ((int)newStatus == (int)Status + 1 || (int)newStatus == (int)Status);
+        if (!canStatusTransition)
             throw new InvalidOperationException($"Cannot transition from {Status} to {newStatus}. Status must progress sequentially.");
 
         return new OrderEntity(Id, ClientEntity, OrderProducts, TotalValue, newStatus)
         {
-            UpdatedAt = DateTime.UtcNow
+            UpdatedAt = DateTime.UtcNow                                                                                                                                                                                                                                                                 
         };
     }
 
     public Guid? GetId() => Id;
-    public Guid GetClientId() => ClientEntity.GetId() ?? Guid.Empty;
+    public Guid GetClientId() => ClientEntity.GetId() ?? Guid.Empty;                                                                                                                                                                                                                                                                                                                                
     public ClientEntity GetClient() => ClientEntity;
     public List<OrderProductEntity> GetOrderProducts() => OrderProducts;
     public Money GetTotalValue() => TotalValue;

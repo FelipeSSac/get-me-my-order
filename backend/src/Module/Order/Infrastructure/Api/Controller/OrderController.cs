@@ -5,7 +5,6 @@ using Order.Domain.Entity;
 using Order.Domain.Enum;
 using Order.Infrastructure.Api.Controller.Mapper;
 using Order.Infrastructure.Api.Controller.Request;
-using Order.Infrastructure.Api.Controller.Response;
 
 namespace Order.Infrastructure.Api.Controller;
 

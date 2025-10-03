@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Order.Domain.Event;
+using Order.Application.UseCase.Interface;
 
 namespace Worker.Services;
 
@@ -9,12 +10,15 @@ public class OrderCreatedEventConsumer : BackgroundService
     private readonly ILogger<OrderCreatedEventConsumer> _logger;
     private readonly ServiceBusProcessor _processor;
     private readonly ServiceBusClient _client;
+    private readonly IServiceProvider _serviceProvider;
 
     public OrderCreatedEventConsumer(
         ILogger<OrderCreatedEventConsumer> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IServiceProvider serviceProvider)
     {
         _logger = logger;
+        _serviceProvider = serviceProvider;
 
         var connectionString = configuration["SERVICEBUS_CONNECTION_STRING"]
             ?? throw new InvalidOperationException("Service Bus connection string is not configured");
@@ -41,7 +45,6 @@ public class OrderCreatedEventConsumer : BackgroundService
 
         _logger.LogInformation("OrderCreatedEventConsumer is now listening for messages...");
 
-        // Keep the service running
         await Task.Delay(Timeout.Infinite, stoppingToken);
     }
 
@@ -64,10 +67,8 @@ public class OrderCreatedEventConsumer : BackgroundService
                     orderCreatedEvent.Currency
                 );
 
-                // TODO: Add your business logic here (e.g., send email, notify external systems, etc.)
                 await ProcessOrderCreatedAsync(orderCreatedEvent);
 
-                // Complete the message so it's removed from the queue
                 await args.CompleteMessageAsync(args.Message);
                 _logger.LogInformation("Message completed successfully");
             }
@@ -75,23 +76,22 @@ public class OrderCreatedEventConsumer : BackgroundService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error processing message");
-            // Don't complete the message - it will be retried
             await args.AbandonMessageAsync(args.Message);
         }
     }
 
-    private Task ProcessOrderCreatedAsync(OrderCreatedEvent orderCreatedEvent)
+    private async Task ProcessOrderCreatedAsync(OrderCreatedEvent orderCreatedEvent)
     {
-        // Add your business logic here
-        // Examples:
-        // - Send confirmation email to customer
-        // - Notify warehouse system
-        // - Update inventory
-        // - Send notifications to external systems
+        _logger.LogInformation("Starting to process Order {OrderId}", orderCreatedEvent.OrderId);
 
-        _logger.LogInformation("Order {OrderId} has been created successfully!", orderCreatedEvent.OrderId);
+        using (var scope = _serviceProvider.CreateScope())
+        {
+            var processOrderUseCase = scope.ServiceProvider.GetRequiredService<IProcessOrderUseCase>();
 
-        return Task.CompletedTask;
+            await processOrderUseCase.Execute(orderCreatedEvent.OrderId.ToString());
+        }
+
+        _logger.LogInformation("Order {OrderId} processing completed!", orderCreatedEvent.OrderId);
     }
 
     private Task ProcessErrorAsync(ProcessErrorEventArgs args)
