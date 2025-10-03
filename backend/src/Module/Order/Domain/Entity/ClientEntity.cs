@@ -25,4 +25,8 @@ public class ClientEntity
     }
     
     public Guid? GetId() => Id;
+    public PersonName GetName() => Name;
+    public Email GetEmail() => Email;
+    public DateTime GetCreatedAt() => CreatedAt;
+    public DateTime GetUpdatedAt() => UpdatedAt;
 }

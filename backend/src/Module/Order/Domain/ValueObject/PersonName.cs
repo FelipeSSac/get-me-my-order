@@ -47,8 +47,10 @@ public sealed class PersonName : IEquatable<PersonName>
         return Create(nameParts[0], nameParts[1]);
     }
 
-    public string FullName => $"{FirstName} {LastName}";
-
+    public string GetFullName() => $"{FirstName} {LastName}";
+    public string GetFirstName()  => FirstName;
+    public string GetLastName()  => LastName;
+    
     public bool Equals(PersonName? other)
     {
         if (other is null) return false;
@@ -59,7 +61,7 @@ public sealed class PersonName : IEquatable<PersonName>
 
     public override int GetHashCode() => HashCode.Combine(FirstName, LastName);
 
-    public override string ToString() => FullName;
+    public override string ToString() => GetFullName();
 
     public static bool operator ==(PersonName? left, PersonName? right) =>
         left is null ? right is null : left.Equals(right);

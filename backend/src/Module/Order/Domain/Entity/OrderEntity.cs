@@ -55,6 +55,7 @@ public class OrderEntity
 
     public Guid? GetId() => Id;
     public Guid GetClientId() => ClientEntity.GetId() ?? Guid.Empty;
+    public ClientEntity GetClient() => ClientEntity;
     public List<OrderProductEntity> GetOrderProducts() => OrderProducts;
     public Money GetTotalValue() => TotalValue;
     public OrderStatus GetStatus() => Status;

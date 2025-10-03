@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Configuration;
+using Order.Application.EventHandler.Interface;
 using Order.Domain.Event;
 using Order.Infrastructure.Messaging;
 

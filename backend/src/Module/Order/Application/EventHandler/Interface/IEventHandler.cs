@@ -1,4 +1,4 @@
-namespace Order.Application.EventHandler;
+namespace Order.Application.EventHandler.Interface;
 
 public interface IEventHandler<in TEvent> where TEvent : class
 {

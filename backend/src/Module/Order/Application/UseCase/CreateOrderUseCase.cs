@@ -23,8 +23,8 @@ public class CreateOrderUseCase : ICreateOrderUseCase
         IProductRepository productRepository,
         IClientRepository clientRepository,
         OrderDbContext context,
-        IDomainEventPublisher eventPublisher)
-    {
+        IDomainEventPublisher eventPublisher
+    ) {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
         _clientRepository = clientRepository;
@@ -54,21 +54,21 @@ public class CreateOrderUseCase : ICreateOrderUseCase
                 OrderStatus.Pending
             );
 
-            var result = await _orderRepository.AddAsync(order);
+            await _orderRepository.AddAsync(order);
 
             var orderCreatedEvent = new OrderCreatedEvent(
-                result.GetId() ?? Guid.Empty,
-                result.GetClientId(),
-                result.GetTotalValue().GetAmount(),
-                result.GetTotalValue().GetCurrency(),
-                result.GetCreatedAt()
+                order.GetId() ?? Guid.Empty,
+                order.GetClientId(),
+                order.GetTotalValue().GetAmount(),
+                order.GetTotalValue().GetCurrency(),
+                order.GetCreatedAt()
             );
 
             await _eventPublisher.PublishAsync(orderCreatedEvent);
 
             await transaction.CommitAsync();
             
-            return result;
+            return order;
         }
         catch (Exception ex)
         {

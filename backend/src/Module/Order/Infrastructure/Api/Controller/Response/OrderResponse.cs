@@ -1,8 +1,10 @@
+using Order.Domain.Entity;
+
 namespace Order.Infrastructure.Api.Controller.Response;
 
 public record OrderResponse(
     Guid Id,
-    Guid ClientId,
+    ClientResponse Client,
     List<OrderProductResponse> Products,
     decimal TotalAmount,
     string TotalCurrency,

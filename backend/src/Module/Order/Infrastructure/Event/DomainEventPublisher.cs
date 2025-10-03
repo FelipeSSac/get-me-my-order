@@ -1,4 +1,4 @@
-using Order.Application.EventHandler;
+using Order.Application.EventHandler.Interface;
 using Order.Domain.Event;
 
 namespace Order.Infrastructure.Event;

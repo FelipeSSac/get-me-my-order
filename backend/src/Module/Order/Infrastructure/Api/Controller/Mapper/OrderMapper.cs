@@ -9,7 +9,7 @@ public static class OrderMapper
     {
         return new OrderResponse(
             order.GetId() ?? Guid.Empty,
-            order.GetClientId(),
+            order.GetClient().ToResponse(),
             order.GetOrderProducts().Select(p => new OrderProductResponse(
                 p.GetProductId(),
                 p.GetProductName(),
