@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 namespace Api.Extensions;
 
-public static class ApplicationPipelineExtensions
+public static class ServicePipelineExtension
 {
     public static WebApplication ConfigurePipeline(this WebApplication app)
     {
