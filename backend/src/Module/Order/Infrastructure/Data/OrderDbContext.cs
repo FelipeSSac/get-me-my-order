@@ -9,6 +9,7 @@ public class OrderDbContext : DbContext
     public DbSet<Domain.Entity.ClientEntity> Clients => Set<Domain.Entity.ClientEntity>();
     public DbSet<Domain.Entity.ProductEntity> Products => Set<Domain.Entity.ProductEntity>();
     public DbSet<Domain.Entity.OrderProductEntity> OrderProducts => Set<Domain.Entity.OrderProductEntity>();
+    public DbSet<Domain.Entity.OrderAuditLogEntity> OrderAuditLogs => Set<Domain.Entity.OrderAuditLogEntity>();
 
     public OrderDbContext(DbContextOptions<OrderDbContext> options) : base(options)
     {
@@ -22,5 +23,6 @@ public class OrderDbContext : DbContext
         modelBuilder.ApplyConfiguration(new ClientConfiguration());
         modelBuilder.ApplyConfiguration(new ProductConfiguration());
         modelBuilder.ApplyConfiguration(new OrderProductConfiguration());
+        modelBuilder.ApplyConfiguration(new OrderAuditLogConfiguration());
     }
 }

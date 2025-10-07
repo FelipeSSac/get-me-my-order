@@ -2,6 +2,7 @@ using Order.Application.UseCase.Interface;
 using Order.Application.Service;
 using Order.Domain.Entity;
 using Order.Domain.Repository;
+using Order.Domain.Event;
 using Microsoft.Extensions.Logging;
 
 namespace Order.Application.UseCase;
@@ -10,16 +11,19 @@ public class ProcessOrderUseCase : IProcessOrderUseCase
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IOrderNotificationService _notificationService;
+    private readonly IDomainEventPublisherService _eventPublisherService;
     private readonly ILogger<ProcessOrderUseCase> _logger;
     private readonly int _processingTimeInMs = 5000;
 
     public ProcessOrderUseCase(
         IOrderRepository orderRepository,
         IOrderNotificationService notificationService,
+        IDomainEventPublisherService eventPublisherService,
         ILogger<ProcessOrderUseCase> logger)
     {
         _orderRepository = orderRepository;
         _notificationService = notificationService;
+        _eventPublisherService = eventPublisherService;
         _logger = logger;
     }
     
@@ -51,6 +55,7 @@ public class ProcessOrderUseCase : IProcessOrderUseCase
     {
         _logger.LogInformation("[ProcessOrderUseCase::SetOrderAsProcessing] Setting order {OrderId} status to Processing", order.GetId());
 
+        var oldStatus = order.GetStatus();
         order = order.SetAsProcessing();
         await _orderRepository.UpdateAsync(order);
 
@@ -65,7 +70,19 @@ public class ProcessOrderUseCase : IProcessOrderUseCase
             }
         );
 
-        _logger.LogInformation("[ProcessOrderUseCase::SetOrderAsProcessing] Order {OrderId} status updated to Processing and notification sent", order.GetId());
+        var orderStatusChangedEvent = new OrderStatusChangedEvent(
+            order.GetId() ?? Guid.Empty,
+            order.GetClientId(),
+            order.GetTotalValue().GetAmount(),
+            order.GetTotalValue().GetCurrency(),
+            oldStatus,
+            order.GetStatus(),
+            DateTime.UtcNow
+        );
+
+        await _eventPublisherService.PublishAsync(orderStatusChangedEvent);
+
+        _logger.LogInformation("[ProcessOrderUseCase::SetOrderAsProcessing] Order {OrderId} status updated to Processing, notification and event dispatched", order.GetId());
 
         return order;
     }
@@ -74,6 +91,7 @@ public class ProcessOrderUseCase : IProcessOrderUseCase
     {
         _logger.LogInformation("[ProcessOrderUseCase::SetOrderAsDone] Setting order {OrderId} status to Done", order.GetId());
 
+        var oldStatus = order.GetStatus();
         order = order.SetAsDone();
         await _orderRepository.UpdateAsync(order);
 
@@ -88,7 +106,19 @@ public class ProcessOrderUseCase : IProcessOrderUseCase
             }
         );
 
-        _logger.LogInformation("[ProcessOrderUseCase::SetOrderAsDone] Order {OrderId} status updated to Done and notification sent", order.GetId());
+        var orderStatusChangedEvent = new OrderStatusChangedEvent(
+            order.GetId() ?? Guid.Empty,
+            order.GetClientId(),
+            order.GetTotalValue().GetAmount(),
+            order.GetTotalValue().GetCurrency(),
+            oldStatus,
+            order.GetStatus(),
+            DateTime.UtcNow
+        );
+
+        await _eventPublisherService.PublishAsync(orderStatusChangedEvent);
+
+        _logger.LogInformation("[ProcessOrderUseCase::SetOrderAsDone] Order {OrderId} status updated to Done, notification and event dispatched", order.GetId());
 
         return order;
     }

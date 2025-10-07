@@ -1,3 +1,5 @@
+using Order.Infrastructure.IOC;
+
 namespace Worker.Extensions;
 
 public static class ServiceBootstrapExtension
@@ -6,6 +8,9 @@ public static class ServiceBootstrapExtension
     {
         // Register database
         services.AddDatabase(configuration);
+
+        // Register events
+        services.AddEvents();
 
         // Register SignalR
         services.AddSignalRConfiguration();

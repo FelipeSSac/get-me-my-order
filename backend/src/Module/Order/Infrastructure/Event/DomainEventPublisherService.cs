@@ -1,13 +1,13 @@
 using Order.Application.EventHandler.Interface;
-using Order.Domain.Event;
+using Order.Application.Service;
 
 namespace Order.Infrastructure.Event;
 
-public class DomainEventPublisher : IDomainEventPublisher
+public class DomainEventPublisherService : IDomainEventPublisherService
 {
     private readonly IServiceProvider _serviceProvider;
 
-    public DomainEventPublisher(IServiceProvider serviceProvider)
+    public DomainEventPublisherService(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
     }

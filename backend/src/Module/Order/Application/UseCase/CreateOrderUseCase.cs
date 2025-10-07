@@ -2,12 +2,11 @@ using Order.Application.UseCase.Interface;
 using Order.Domain.Repository;
 using Order.Domain.Entity;
 using Order.Domain.Enum;
-using Order.Domain.ValueObject;
 using Order.Domain.Event;
 using Order.Infrastructure.Api.Controller.Request;
 using Order.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Order.Application.Service;
 
 namespace Order.Application.UseCase;
 
@@ -17,7 +16,7 @@ public class CreateOrderUseCase : ICreateOrderUseCase
     private readonly IProductRepository _productRepository;
     private readonly IClientRepository _clientRepository;
     private readonly OrderDbContext _context;
-    private readonly IDomainEventPublisher _eventPublisher;
+    private readonly IDomainEventPublisherService _eventPublisherService;
     private readonly ILogger<CreateOrderUseCase> _logger;
 
     public CreateOrderUseCase(
@@ -25,14 +24,14 @@ public class CreateOrderUseCase : ICreateOrderUseCase
         IProductRepository productRepository,
         IClientRepository clientRepository,
         OrderDbContext context,
-        IDomainEventPublisher eventPublisher,
+        IDomainEventPublisherService eventPublisherService,
         ILogger<CreateOrderUseCase> logger
     ) {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
         _clientRepository = clientRepository;
         _context = context;
-        _eventPublisher = eventPublisher;
+        _eventPublisherService = eventPublisherService;
         _logger = logger;
     }
 
@@ -77,7 +76,7 @@ public class CreateOrderUseCase : ICreateOrderUseCase
                 order.GetCreatedAt()
             );
 
-            await _eventPublisher.PublishAsync(orderCreatedEvent);
+            await _eventPublisherService.PublishAsync(orderCreatedEvent);
 
             _logger.LogInformation("[CreateOrderUseCase::Execute] OrderCreatedEvent published for order {OrderId}", order.GetId());
 

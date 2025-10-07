@@ -9,6 +9,8 @@ using Order.Infrastructure.Api.Controller.Request;
 using Order.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Order.Application.Service;
 
 namespace Order.Tests.Application.UseCase;
 
@@ -17,6 +19,8 @@ public class CreateOrderUseCaseTests : IDisposable
     private readonly Mock<IOrderRepository> _orderRepositoryMock;
     private readonly Mock<IProductRepository> _productRepositoryMock;
     private readonly Mock<IClientRepository> _clientRepositoryMock;
+    private readonly Mock<IDomainEventPublisherService> _eventPublisherServiceMock;
+    private readonly Mock<ILogger<CreateOrderUseCase>> _loggerMock;
     private readonly OrderDbContext _context;
     private readonly CreateOrderUseCase _sut;
 
@@ -25,6 +29,8 @@ public class CreateOrderUseCaseTests : IDisposable
         _orderRepositoryMock = new Mock<IOrderRepository>();
         _productRepositoryMock = new Mock<IProductRepository>();
         _clientRepositoryMock = new Mock<IClientRepository>();
+        _eventPublisherServiceMock = new Mock<IDomainEventPublisherService>();
+        _loggerMock = new Mock<ILogger<CreateOrderUseCase>>();
 
         var options = new DbContextOptionsBuilder<OrderDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
@@ -36,7 +42,9 @@ public class CreateOrderUseCaseTests : IDisposable
             _orderRepositoryMock.Object,
             _productRepositoryMock.Object,
             _clientRepositoryMock.Object,
-            _context
+            _context,
+            _eventPublisherServiceMock.Object,
+            _loggerMock.Object
         );
     }
 
@@ -68,6 +76,10 @@ public class CreateOrderUseCaseTests : IDisposable
         _orderRepositoryMock
             .Setup(x => x.AddAsync(It.IsAny<OrderEntity>(), default))
             .ReturnsAsync((OrderEntity order, CancellationToken _) => order);
+
+        _eventPublisherServiceMock
+            .Setup(x => x.PublishAsync(It.IsAny<object>()))
+            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _sut.Execute(request);
@@ -179,6 +191,10 @@ public class CreateOrderUseCaseTests : IDisposable
         _orderRepositoryMock
             .Setup(x => x.AddAsync(It.IsAny<OrderEntity>(), default))
             .ReturnsAsync((OrderEntity order, CancellationToken _) => order);
+
+        _eventPublisherServiceMock
+            .Setup(x => x.PublishAsync(It.IsAny<object>()))
+            .Returns(Task.CompletedTask);
 
         // Act
         var result = await _sut.Execute(request);

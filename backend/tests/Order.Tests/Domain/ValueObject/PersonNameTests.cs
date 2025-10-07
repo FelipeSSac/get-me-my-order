@@ -13,7 +13,7 @@ public class PersonNameTests
 
         // Assert
         name.Should().NotBeNull();
-        name.FullName.Should().Be("John Doe");
+        name.GetFullName().Should().Be("John Doe");
     }
 
     [Fact]
@@ -95,7 +95,7 @@ public class PersonNameTests
         var name = PersonName.Create("  John  ", "  Doe  ");
 
         // Assert
-        name.FullName.Should().Be("John Doe");
+        name.GetFullName().Should().Be("John Doe");
     }
 
     [Fact]
@@ -105,7 +105,7 @@ public class PersonNameTests
         var name = PersonName.Create("John Doe");
 
         // Assert
-        name.FullName.Should().Be("John Doe");
+        name.GetFullName().Should().Be("John Doe");
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class PersonNameTests
         var name = PersonName.Create("John   Doe   Smith");
 
         // Assert
-        name.FullName.Should().Be("John Doe   Smith");
+        name.GetFullName().Should().Be("John Doe   Smith");
     }
 
     [Fact]
