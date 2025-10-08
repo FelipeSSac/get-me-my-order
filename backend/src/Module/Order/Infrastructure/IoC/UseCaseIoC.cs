@@ -13,8 +13,12 @@ public static class UseCaseIoC
         services.AddScoped<IGetOrdersUseCase, GetOrdersUseCase>();
 
         services.AddScoped<ICreateClientUseCase, CreateClientUseCase>();
+        services.AddScoped<IGetClientUseCase, GetClientUseCase>();
+        services.AddScoped<IGetClientsUseCase, GetClientsUseCase>();
 
         services.AddScoped<ICreateProductUseCase, CreateProductUseCase>();
+        services.AddScoped<IGetProductUseCase, GetProductUseCase>();
+        services.AddScoped<IGetProductsUseCase, GetProductsUseCase>();
 
         return services;
     }

@@ -9,6 +9,9 @@ public static class ServiceBootstrapExtension
         // Register database
         services.AddDatabase(configuration);
 
+        // Register Azure Service Bus
+        services.AddServiceBus(configuration);
+
         // Register events
         services.AddEvents();
 

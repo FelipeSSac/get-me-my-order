@@ -14,7 +14,9 @@ public static class ProductMapper
             product.GetId() ?? Guid.Empty,
             product.GetName(),
             value.GetAmount(),
-            value.GetCurrency()
+            value.GetCurrency(),
+            product.GetCreatedAt(),
+            product.GetUpdatedAt()
         );
     }
 }

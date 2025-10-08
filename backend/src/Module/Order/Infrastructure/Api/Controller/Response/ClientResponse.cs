@@ -2,7 +2,7 @@ namespace Order.Infrastructure.Api.Controller.Response;
 
 public record ClientResponse(
     Guid Id,
-    string FisrtName,
+    string FirstName,
     string LastName,
     string Email, 
     DateTime CreatedAt,

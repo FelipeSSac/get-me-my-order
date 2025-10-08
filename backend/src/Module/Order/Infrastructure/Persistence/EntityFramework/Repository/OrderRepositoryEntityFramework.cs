@@ -23,15 +23,6 @@ public class OrderRepositoryEntityFramework : IOrderRepository
             .FirstOrDefaultAsync(o => EF.Property<Guid>(o, "Id") == id, cancellationToken);
     }
 
-    public async Task<IEnumerable<OrderEntity>> GetByStatusAsync(Domain.Enum.OrderStatus status, CancellationToken cancellationToken = default)
-    {
-        return await _context.Orders
-            .Include("ClientEntity")
-            .Include("OrderProducts.Product")
-            .Where(o => EF.Property<Domain.Enum.OrderStatus>(o, "Status") == status)
-            .ToListAsync(cancellationToken);
-    }
-
     public async Task<(IEnumerable<OrderEntity> Items, int TotalCount)> GetPaginatedAsync(int page, int pageSize, Domain.Enum.OrderStatus? status = null, CancellationToken cancellationToken = default)
     {
         var query = _context.Orders

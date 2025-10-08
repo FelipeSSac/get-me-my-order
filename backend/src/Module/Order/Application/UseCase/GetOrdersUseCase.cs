@@ -3,6 +3,7 @@ using Order.Application.UseCase.Interface;
 using Order.Domain.Entity;
 using Order.Domain.Repository;
 using Microsoft.Extensions.Logging;
+using Order.Domain.Enum;
 
 namespace Order.Application.UseCase;
 
@@ -19,7 +20,7 @@ public class GetOrdersUseCase : IGetOrdersUseCase
         _logger = logger;
     }
 
-    public async Task<PaginatedResult<OrderEntity>> Execute(int page, int pageSize, Domain.Enum.OrderStatus? status = null)
+    public async Task<PaginatedResult<OrderEntity>> Execute(int page, int pageSize, OrderStatus? status = null)
     {
         _logger.LogInformation("[GetOrdersUseCase::Execute] Fetching orders - Page: {Page}, PageSize: {PageSize}, Status: {Status}",
             page, pageSize, status?.ToString() ?? "All");

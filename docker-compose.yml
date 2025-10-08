@@ -1,0 +1,143 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: get-me-my-order-postgres
+    environment:
+      POSTGRES_DB: gmmo_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d gmmo_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: get-me-my-order-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+
+  mssql:
+    container_name: get-me-my-order-mssql
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+    networks:
+      - app-network
+
+  servicebus-emulator:
+    container_name: get-me-my-order-servicebus-emulator
+    image: mcr.microsoft.com/azure-messaging/servicebus-emulator:latest
+    pull_policy: always
+    volumes:
+      - ./backend/servicebus-config:/ServiceBus_Emulator/ConfigFiles
+    ports:
+      - "5672:5672"
+      - "5300:5300"
+    environment:
+      SQL_SERVER: mssql
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD}
+      ACCEPT_EULA: Y
+      SQL_WAIT_INTERVAL: ${SQL_WAIT_INTERVAL}
+    networks:
+      - app-network
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: src/Shared/Infrastructure/Api/Dockerfile
+    container_name: get-me-my-order-api
+    environment:
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-gmmo_db}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      SERVICEBUS_CONNECTION_STRING: ${SERVICEBUS_CONNECTION_STRING}
+      SERVICEBUS_QUEUE_NAME: ${SERVICEBUS_QUEUE_NAME:-orders-queue}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-YourStrong@Passw0rd123}
+      SQL_WAIT_INTERVAL: ${SQL_WAIT_INTERVAL:-30}
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS:-http://localhost:5000}
+      WORKER_URLS: ${WORKER_URLS:-http://localhost:5001}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5000}
+    ports:
+      - "5000:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: src/Shared/Infrastructure/Worker/Dockerfile
+    container_name: get-me-my-order-worker
+    environment:
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-gmmo_db}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      SERVICEBUS_CONNECTION_STRING: ${SERVICEBUS_CONNECTION_STRING}
+      SERVICEBUS_QUEUE_NAME: ${SERVICEBUS_QUEUE_NAME:-orders-queue}
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:-YourStrong@Passw0rd123}
+      SQL_WAIT_INTERVAL: ${SQL_WAIT_INTERVAL:-30}
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS:-http://localhost:5000}
+      WORKER_URLS: ${WORKER_URLS:-http://localhost:5001}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5000}
+    ports:
+      - "5001:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      servicebus-emulator:
+        condition: service_started
+    networks:
+      - app-network
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: get-me-my-order-web
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5000}
+      NEXT_PUBLIC_SIGNALR_URL: ${NEXT_PUBLIC_SIGNALR_URL:-http://localhost:5001/hubs/orders}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    restart: unless-stopped
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

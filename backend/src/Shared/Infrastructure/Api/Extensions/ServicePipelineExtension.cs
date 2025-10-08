@@ -12,6 +12,7 @@ public static class ServicePipelineExtension
             app.MapOpenApi();
         }
 
+        app.UseCors("AllowFrontend");
         app.UseHttpsRedirection();
         app.MapControllers();
 

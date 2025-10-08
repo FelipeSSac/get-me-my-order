@@ -30,11 +30,11 @@ public class OrderNotificationService : IOrderNotificationService
             };
 
             await _hubContext.Clients
-                .Group($"order-{orderId}")
+                .All
                 .SendAsync("OrderStatusChanged", notification);
 
             _logger.LogInformation(
-                "[OrderNotificationService::NotifyOrderStatusChanged] Notification sent for order {OrderId} with status {Status}",
+                "[OrderNotificationService::NotifyOrderStatusChanged] Notification sent to all clients for order {OrderId} with status {Status}",
                 orderId,
                 status
             );

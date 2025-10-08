@@ -9,6 +9,17 @@ public static class ServiceBootstrapExtension
         services.AddControllers();
         services.AddOpenApi();
 
+        // Register CORS
+        services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend", policy =>
+            {
+                policy.WithOrigins("http://localhost:3000")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod();
+            });
+        });
+
         // Register validation
         services.AddValidation();
 

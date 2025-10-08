@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Order.Domain.Entity;
 using Order.Domain.Repository;
 using Order.Infrastructure.Data;
 
@@ -13,49 +14,33 @@ public class ProductRepositoryEntityFramework : IProductRepository
         _context = context;
     }
     
-    public async Task<bool> ProductExists(Guid id, CancellationToken cancellationToken = default)
+    public async Task<(IEnumerable<ProductEntity> Items, int TotalCount)> GetPaginatedAsync(int page, int pageSize, CancellationToken cancellationToken = default)
     {
-        return await _context.Products
-            .AnyAsync(c => EF.Property<Guid>(c, "Id") == id, cancellationToken);
+        var query = _context.Products
+            .AsQueryable();
+        
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderByDescending(o => EF.Property<DateTime>(o, "CreatedAt"))
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (items, totalCount);
     }
 
-    public async Task<Domain.Entity.ProductEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<ProductEntity?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context.Products
             .FirstOrDefaultAsync(p => EF.Property<Guid>(p, "Id") == id, cancellationToken);
     }
 
-    public async Task<Domain.Entity.ProductEntity?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
-    {
-        return await _context.Products
-            .FirstOrDefaultAsync(p => EF.Property<string>(EF.Property<object>(p, "Name"), "Value") == name, cancellationToken);
-    }
-
-    public async Task<IEnumerable<Domain.Entity.ProductEntity>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        return await _context.Products.ToListAsync(cancellationToken);
-    }
-
-    public async Task<Domain.Entity.ProductEntity> AddAsync(Domain.Entity.ProductEntity productEntity, CancellationToken cancellationToken = default)
+    public async Task<ProductEntity> AddAsync(ProductEntity productEntity, CancellationToken cancellationToken = default)
     {
         await _context.Products.AddAsync(productEntity, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
         return productEntity;
-    }
-
-    public async Task UpdateAsync(Domain.Entity.ProductEntity productEntity, CancellationToken cancellationToken = default)
-    {
-        _context.Products.Update(productEntity);
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
-    {
-        var product = await GetByIdAsync(id, cancellationToken);
-        if (product != null)
-        {
-            _context.Products.Remove(product);
-            await _context.SaveChangesAsync(cancellationToken);
-        }
     }
 }
