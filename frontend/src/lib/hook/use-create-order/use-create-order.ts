@@ -37,6 +37,9 @@ export function useCreateOrder() {
     0
   );
 
+  // Get currency from first order item, default to BRL if no items
+  const currency = orderItems.length > 0 ? orderItems[0].unitPriceCurrency : "BRL";
+
   return {
     loading,
     customers,
@@ -44,6 +47,7 @@ export function useCreateOrder() {
     selectedCustomerId,
     orderItems,
     totalValue,
+    currency,
     setSelectedCustomerId,
     handleAddItem,
     handleUpdateItem,

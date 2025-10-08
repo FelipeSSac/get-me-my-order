@@ -36,7 +36,7 @@ export function OrderItemRow({
             <SelectContent>
               {products.map((product) => (
                 <SelectItem key={product.id} value={product.id}>
-                  {product.name} - {formatCurrency(product.price)}
+                  {product.name} - {formatCurrency(product.price, product.currency)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -58,7 +58,7 @@ export function OrderItemRow({
         <div className="space-y-2">
           <Label>Subtotal</Label>
           <div className="flex h-10 items-center rounded-md border border-border bg-muted px-3 text-sm font-medium">
-            {formatCurrency(item.unitPriceAmount * item.quantity)}
+            {formatCurrency(item.unitPriceAmount * item.quantity, item.unitPriceCurrency)}
           </div>
         </div>
 

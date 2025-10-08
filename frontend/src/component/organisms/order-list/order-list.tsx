@@ -154,7 +154,7 @@ export function OrderList({ onOrderSelect, refreshTrigger }: OrderListProps) {
                         {order.products.length} item(s)
                       </td>
                       <td className="py-4 text-sm font-medium text-foreground">
-                        {formatCurrency(order.totalAmount)}
+                        {formatCurrency(order.totalAmount, order.totalCurrency)}
                       </td>
                       <td className="py-4">
                         <StatusBadge status={order.status} />

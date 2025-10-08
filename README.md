@@ -315,21 +315,291 @@ ws://localhost:5001/hubs/orders
   }
   ```
 
-## 🐳 Docker
+## ⚠️ Known Limitations & Missing Features
 
-### Run with Docker Compose
+While the core functionality is working, the following features and improvements are missing or incomplete:
+
+### Frontend Issues
+
+#### 🔴 Critical
+- **No Error Feedback** - API errors are not displayed to the user
+  - Form submissions fail silently when validation errors occur
+  - Network errors are not shown
+  - SignalR connection failures are not communicated
+- **No Loading States** - Missing loading indicators during async operations
+  - Order creation shows no feedback while processing
+  - Data fetching has no loading UI
+
+#### 🟡 Important
+- **Form Validation** - Client-side validation is minimal or missing
+  - No real-time field validation
+  - Error messages don't highlight specific fields
+- **SignalR Error Handling** - Connection errors are logged but not shown to users
+- **No Retry Logic** - Failed requests are not retried automatically
+
+#### 🟢 Nice to Have
+- **Toast Notifications** - Success/error messages should use toast UI
+- **Optimistic Updates** - UI should update optimistically before server confirms
+- **Empty States** - Better UI when lists are empty
+- **Pagination Controls** - Current pagination is API-only, no UI controls
+- **Confirmation Dialogs** - No confirmation before destructive actions
+
+### Backend Gaps
+
+#### 🔴 Critical
+- **No Global Error Handler** - API lacks centralized exception handling middleware
+  - Unhandled exceptions return generic 500 errors
+  - No consistent error response format
+  - Stack traces may leak to production
+  - No error logging/monitoring integration
+
+#### 🟡 Important
+- **Authentication/Authorization** - No security layer implemented
+- **Input Validation** - Some endpoints lack comprehensive validation
+- **Error Responses** - Error messages could be more descriptive
+- **Rate Limiting** - No protection against abuse
+
+#### 🟢 Nice to Have
+- **Audit Logging** - Order audit events are stored but not exposed via API
+- **Request/Response Logging** - No middleware to log HTTP traffic
+
+### Testing
+
+- **No Frontend Tests** - No unit, integration, or E2E tests for React components
+- **No Backend Tests** - Test infrastructure exists but no actual tests implemented
+- **No Load Testing** - SignalR performance under load is untested
+
+### DevOps
+
+- **No CI/CD Pipeline** - No automated build/test/deploy workflow
+- **No Monitoring** - No application performance monitoring (APM)
+- **No Logging Aggregation** - Logs are local only
+- **Docker Production Config** - Current docker-compose is dev-only
+
+### Recommendations
+
+To improve the application, prioritize in this order:
+
+1. **Add Global Error Handler (API)** - Implement exception handling middleware
+2. **Add Error Toast Notifications (Frontend)** - Implement toast library (e.g., react-hot-toast)
+3. **Add Loading States (Frontend)** - Show spinners during async operations
+4. **Improve Form Validation** - Add comprehensive client-side validation
+5. **Implement Error Boundaries (Frontend)** - Catch React errors gracefully
+6. **Add Authentication** - Implement JWT-based auth
+7. **Write Tests** - Start with critical path E2E tests
+8. **Add Monitoring** - Implement APM and error tracking
+
+## 🐳 Running with Docker Compose
+
+The easiest way to run the entire application stack is using Docker Compose. This will start all services (database, message queue, backend, and frontend) with a single command.
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) 20.10+
+- [Docker Compose](https://docs.docker.com/compose/install/) 2.0+
+
+### Step-by-Step Guide
+
+#### 1️⃣ Clone the Repository
 
 ```bash
-cd backend
-docker-compose -f docker-compose.dev.yml up
+git clone https://github.com/felipessac/get-me-my-order.git
+cd get-me-my-order
 ```
 
-This will start:
+#### 2️⃣ Configure Environment Variables
 
-- PostgreSQL database
-- Azure Service Bus emulator (Azurite)
-- API service
-- Worker service
+The project includes a `.env` file with default configuration. You can use it as-is for development or modify it:
+
+```bash
+# Review and update if needed
+cat .env
+
+# Key variables:
+# - Database credentials
+# - Service Bus connection
+# - CORS origins
+# - Service URLs
+```
+
+**Important:** The `.env` file is already configured for Docker Compose. The default values will work out of the box.
+
+#### 3️⃣ Build and Start All Services
+
+```bash
+# Build and start all services in detached mode
+docker compose up -d --build
+```
+
+This command will:
+- Build Docker images for API, Worker, and Frontend
+- Start PostgreSQL database
+- Start MS SQL Server (for Service Bus emulator)
+- Start Azure Service Bus emulator
+- Start API service on port 5000
+- Start Worker service (SignalR) on port 5001
+- Start Frontend on port 3000
+
+#### 4️⃣ Monitor Service Startup
+
+```bash
+# View logs from all services
+docker compose logs -f
+
+# Or view logs from a specific service
+docker compose logs -f api
+docker compose logs -f worker
+docker compose logs -f web
+```
+
+Wait until you see:
+- `✅ API running` - API service is ready
+- `✅ Worker running` - Worker service is ready
+- `✅ Frontend compiled` - Frontend is ready
+
+#### 5️⃣ Verify Services are Running
+
+```bash
+# Check all containers are up
+docker compose ps
+
+# Check health status
+curl http://localhost:5000/health  # API health
+curl http://localhost:5001/health  # Worker health
+```
+
+All services should show status as "Up (healthy)".
+
+#### 6️⃣ Access the Application
+
+Open your browser and navigate to:
+
+- **Frontend**: http://localhost:3000
+- **API Swagger**: http://localhost:5000/swagger
+- **PgAdmin**: http://localhost:5050 (login: admin@admin.com / admin)
+
+#### 7️⃣ Test the Application
+
+1. Navigate to http://localhost:3000
+2. Create a customer
+3. Create products
+4. Create an order
+5. Watch real-time status updates! 🎉
+
+### Managing the Application
+
+#### Stop All Services
+
+```bash
+# Stop all services but keep data
+docker compose stop
+
+# Stop and remove containers (keeps volumes/data)
+docker compose down
+
+# Stop, remove containers AND volumes (fresh start)
+docker compose down -v
+```
+
+#### Restart Services
+
+```bash
+# Restart all services
+docker compose restart
+
+# Restart a specific service
+docker compose restart api
+docker compose restart worker
+docker compose restart web
+```
+
+#### View Service Logs
+
+```bash
+# All services
+docker compose logs -f
+
+# Specific service
+docker compose logs -f api
+
+# Last 100 lines
+docker compose logs --tail 100 api
+```
+
+#### Rebuild After Code Changes
+
+```bash
+# Rebuild and restart all services
+docker compose up -d --build
+
+# Rebuild specific service
+docker compose up -d --build api
+```
+
+### Useful Commands
+
+```bash
+# Execute commands inside a container
+docker compose exec api bash
+docker compose exec postgres psql -U postgres -d gmmo_db
+
+# Check resource usage
+docker compose stats
+
+# Remove all containers, networks, and volumes
+docker compose down -v --remove-orphans
+
+# Pull latest images
+docker compose pull
+```
+
+### Troubleshooting
+
+#### Services Won't Start
+
+```bash
+# Check logs for errors
+docker compose logs
+
+# Restart with fresh state
+docker compose down -v
+docker compose up -d --build
+```
+
+#### Port Already in Use
+
+If you see port binding errors, make sure ports 3000, 5000, 5001, and 5432 are not in use:
+
+```bash
+# Linux/Mac
+lsof -i :3000
+lsof -i :5000
+
+# Windows
+netstat -ano | findstr :3000
+```
+
+#### Database Connection Issues
+
+```bash
+# Check if PostgreSQL is healthy
+docker compose ps postgres
+
+# Access database directly
+docker compose exec postgres psql -U postgres -d gmmo_db
+
+# View database logs
+docker compose logs postgres
+```
+
+#### Reset Everything
+
+```bash
+# Complete reset (removes all data)
+docker compose down -v
+docker system prune -a
+docker compose up -d --build
+```
 
 ## 🤝 Contributing
 

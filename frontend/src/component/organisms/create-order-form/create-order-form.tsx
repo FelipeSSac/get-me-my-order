@@ -28,6 +28,7 @@ export function CreateOrderForm({ onSuccess, onCancel }: CreateOrderFormProps) {
     selectedCustomerId,
     orderItems,
     totalValue,
+    currency,
     setSelectedCustomerId,
     handleAddItem,
     handleUpdateItem,
@@ -106,7 +107,7 @@ export function CreateOrderForm({ onSuccess, onCancel }: CreateOrderFormProps) {
             )}
           </div>
 
-          {orderItems.length > 0 && <OrderSummary totalValue={totalValue} />}
+          {orderItems.length > 0 && <OrderSummary totalValue={totalValue} currency={currency} />}
 
           <FormActions
             submitLabel="Create Order"
